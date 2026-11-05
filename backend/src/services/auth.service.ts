@@ -92,4 +92,6 @@ export const authService = {
         if (!user || !user.isActive) throw ApiError.unauthorized('User no longer exists or is disabled');
         return toUserResponse(user);
     },
+
+    startSession: (user: UserDocument) => issueSession(user),
 };

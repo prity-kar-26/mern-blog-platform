@@ -1,5 +1,6 @@
 import { IUser, User } from '../models/user.model';
 import { Role } from '../constants/roles';
+import { OAuthProvider } from '../constants/oauth';
 
 type CreateUserInput = Pick<IUser, 'name' | 'email'> &
     Partial<Pick<IUser, 'password' | 'role' | 'googleId' | 'facebookId'>>;
@@ -20,6 +21,16 @@ export const userRepository = {
     findByEmail: (email: string) => User.findOne({ email }),
     findByEmailWithPassword: (email: string) => User.findOne({ email }).select('+password'),
     create: (data: CreateUserInput) => User.create(data),
+
+    findByProviderId: (provider: OAuthProvider, providerId: string) =>
+        User.findOne(provider === 'google' ? { googleId: providerId } : { facebookId: providerId }),
+
+    linkProvider: (userId: string, provider: OAuthProvider, providerId: string) =>
+        User.findByIdAndUpdate(
+            userId,
+            { $set: provider === 'google' ? { googleId: providerId } : { facebookId: providerId } },
+            { new: true },
+        ),
 
     async findPage({ page, limit, search, role, isActive }: ListUsersOptions) {
         const pattern = search ? new RegExp(escapeRegex(search), 'i') : null;

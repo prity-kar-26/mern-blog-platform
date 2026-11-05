@@ -5,6 +5,7 @@ import { authenticate } from '../../middlewares/authenticate';
 import { authLimiter, loginLimiter } from '../../middlewares/rateLimiter';
 import { validate } from '../../middlewares/validate';
 import { loginSchema, registerSchema } from '../../validators/auth.validator';
+import { oauthController } from '../../controllers/oauth.controller';
 
 const router = Router();
 
@@ -25,5 +26,10 @@ router.post(
 router.post('/refresh', authLimiter, authController.refresh);
 router.post('/logout', authLimiter, activityLogger('USER_LOGOUT'), authController.logout);
 router.get('/me', authenticate, authController.me);
+
+router.get('/google', authLimiter, oauthController.start('google'));
+router.get('/google/callback', authLimiter, oauthController.callback('google'));
+router.get('/facebook', authLimiter, oauthController.start('facebook'));
+router.get('/facebook/callback', authLimiter, oauthController.callback('facebook'));
 
 export default router;
