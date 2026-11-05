@@ -1,11 +1,13 @@
 import { Types } from 'mongoose';
 import { Post, PostWithAuthor } from '../models/post.model';
 
+type DeletedFilter = 'exclude' | 'only' | 'include';
+
 interface ListOptions {
     page: number;
     limit: number;
     author?: string;
-    includeDeleted?: boolean;
+    deleted?: DeletedFilter;
 }
 
 interface PostOwnerRef {
@@ -13,15 +15,15 @@ interface PostOwnerRef {
     author: Types.ObjectId;
 }
 
-// const withAuthor = <T extends { populate: (path: string, select: string) => unknown }>(q: T) =>
-//     q.populate('author', 'name');
+const DELETED_FILTERS: Record<DeletedFilter, { isDeleted?: boolean }> = {
+    exclude: { isDeleted: false },
+    only: { isDeleted: true },
+    include: {},
+};
 
 export const postRepository = {
-    async findPage({ page, limit, author, includeDeleted = false }: ListOptions) {
-        const filter = {
-            ...(includeDeleted ? {} : { isDeleted: false }),
-            ...(author ? { author } : {}),
-        };
+    async findPage({ page, limit, author, deleted = 'exclude' }: ListOptions) {
+        const filter = { ...DELETED_FILTERS[deleted], ...(author ? { author } : {}) };
 
         const [items, total] = await Promise.all([
             Post.find(filter)
@@ -61,4 +63,15 @@ export const postRepository = {
 
     softDeleteById: (id: string) =>
         Post.updateOne({ _id: id, isDeleted: false }, { $set: { isDeleted: true, deletedAt: new Date() } }),
+
+    softDeleteByAuthor: (authorId: string) =>
+        Post.updateMany(
+            { author: authorId, isDeleted: false },
+            { $set: { isDeleted: true, deletedAt: new Date() } },
+        ),
+
+    restoreById: (id: string) =>
+        Post.updateOne({ _id: id, isDeleted: true }, { $set: { isDeleted: false, deletedAt: null } }),
+
+    countActive: () => Post.countDocuments({ isDeleted: false }),
 };

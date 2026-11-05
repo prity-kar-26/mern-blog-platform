@@ -14,6 +14,12 @@ export type CommentWithAuthor = Omit<IComment, 'author'> & {
     author: PopulatedAuthor | null;
 };
 
+export type CommentWithRefs = Omit<IComment, 'post' | 'author'> & {
+    _id: Types.ObjectId;
+    post: { _id: Types.ObjectId; title: string; slug: string } | null;
+    author: PopulatedAuthor | null;
+};
+
 const commentSchema = new Schema<IComment>(
     {
         post: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
@@ -25,5 +31,8 @@ const commentSchema = new Schema<IComment>(
 
 // Serves "comments of a post in chronological order" with pagination
 commentSchema.index({ post: 1, createdAt: 1 });
+// Admin list of all comments, and cascade delete by author
+commentSchema.index({ createdAt: -1 });
+commentSchema.index({ author: 1 });
 
 export const Comment = model<IComment>('Comment', commentSchema);

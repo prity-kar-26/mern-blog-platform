@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { Comment, CommentWithAuthor } from '../models/comment.model';
+import { Comment, CommentWithAuthor, CommentWithRefs } from '../models/comment.model';
 
 interface CommentOwnerRef {
     _id: Types.ObjectId;
@@ -34,4 +34,23 @@ export const commentRepository = {
             .lean<CommentWithAuthor | null>(),
 
     deleteById: (id: string) => Comment.deleteOne({ _id: id }),
+
+    async findPageAll(page: number, limit: number) {
+        const [items, total] = await Promise.all([
+            Comment.find()
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .populate('author', 'name')
+                .populate('post', 'title slug')
+                .lean<CommentWithRefs[]>(),
+            Comment.countDocuments(),
+        ]);
+
+        return { items, total };
+    },
+
+    deleteByAuthor: (authorId: string) => Comment.deleteMany({ author: authorId }),
+
+    count: () => Comment.countDocuments(),
 };

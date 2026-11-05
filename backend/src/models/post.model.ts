@@ -39,5 +39,7 @@ const postSchema = new Schema<IPost>(
 postSchema.index({ isDeleted: 1, createdAt: -1 });
 // "Posts by author" lists and the author filter
 postSchema.index({ author: 1, isDeleted: 1, createdAt: -1 });
+// Admin list across all posts, including soft-deleted ones
+postSchema.index({ createdAt: -1 });
 
 export const Post = model<IPost>('Post', postSchema);
