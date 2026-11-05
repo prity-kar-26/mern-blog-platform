@@ -12,7 +12,7 @@ import { getErrorMessage } from '../utils/error';
 // Remove 'facebook' here until its credentials are configured on the backend
 const OAUTH_PROVIDERS: { id: OAuthProvider; label: string }[] = [
     { id: 'google', label: 'Continue with Google' },
-    { id: 'facebook', label: 'Continue with Facebook' },
+    // { id: 'facebook', label: 'Continue with Facebook' },
 ];
 
 export function LoginPage() {

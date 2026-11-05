@@ -93,3 +93,8 @@ export interface DashboardStats {
     totalPosts: number;
     totalComments: number;
 }
+
+export interface PostInput {
+    title: string;
+    content: string;
+}
